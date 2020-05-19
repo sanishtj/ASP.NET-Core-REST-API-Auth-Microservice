@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -42,8 +41,6 @@ namespace AuthMicroservice.Tests
             var mockSignInManager = GetMockSignInManager();
 
             var mockEmail = new Mock<IEmailSender>();
-            var mockConfig = new Mock<IConfiguration>();
-            mockConfig.SetupGet(x => x[It.Is<string>(s => s == "HealthRecordStackSecret")]).Returns("Give_A_Lengthy_String_To_Satisfy_Length_Requirements");
             IdentityError[] errors = new IdentityError[] { new IdentityError() };
             mockUserManager.SetupSequence(r => r.CreateAsync(It.IsAny<HRSIdentityUser>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success).ReturnsAsync(IdentityResult.Failed(errors)).ReturnsAsync(IdentityResult.Success).ReturnsAsync(IdentityResult.Failed(errors));
             mockUserManager.SetupSequence(r => r.CreateAsync(It.IsAny<HRSIdentityUser>())).ReturnsAsync(IdentityResult.Success).ReturnsAsync(IdentityResult.Failed(errors)).ReturnsAsync(IdentityResult.Success).ReturnsAsync(IdentityResult.Failed(errors));
@@ -102,7 +99,7 @@ namespace AuthMicroservice.Tests
                .ReturnsAsync(IdentityResult.Failed(errors)).ReturnsAsync(IdentityResult.Success).ReturnsAsync(IdentityResult.Success);
 
             mockEmail.Setup(r => r.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
-            usersController = new UsersController(mockUserManager.Object, Mapper, mockLogger.Object, mockEmail.Object, mockSignInManager.Object, mockConfig.Object);
+            usersController = new UsersController(mockUserManager.Object, Mapper, mockLogger.Object, mockEmail.Object, mockSignInManager.Object);
 
         }
 

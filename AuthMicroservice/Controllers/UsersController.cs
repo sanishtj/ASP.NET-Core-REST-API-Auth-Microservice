@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -30,16 +29,15 @@ namespace AuthMicroservice.Controllers
         IMapper _mapper;
         IEmailSender _emailSender;
         ILogger<UsersController> _log;
-        IConfiguration Configuration { get; }
+        //RoleManager<IdentityRole> _roleManager;
 
-        public UsersController(UserManager<HRSIdentityUser> userManager, IMapper mapper, ILogger<UsersController> log, IEmailSender emailSender, SignInManager<HRSIdentityUser> signInManager, IConfiguration configuration)
+        public UsersController(UserManager<HRSIdentityUser> userManager, IMapper mapper, ILogger<UsersController> log, IEmailSender emailSender, SignInManager<HRSIdentityUser> signInManager)
         {
             _userManager = userManager;
             _mapper = mapper;
             _emailSender = emailSender;
             _signInManager = signInManager;
             _log = log;
-            Configuration = configuration;
         }
 
         [HttpPost]
@@ -232,7 +230,7 @@ namespace AuthMicroservice.Controllers
                     //}
                 }
 
-                var secretBytes = Encoding.UTF8.GetBytes(Configuration["HealthRecordStackSecret"]);
+                var secretBytes = Encoding.UTF8.GetBytes("HealthRecordStackSecretMaybeAUniqueSecret");
                 var key = new SymmetricSecurityKey(secretBytes);
                 var algorithm = SecurityAlgorithms.HmacSha256;
                 var signingCredentials = new SigningCredentials(key, algorithm);
