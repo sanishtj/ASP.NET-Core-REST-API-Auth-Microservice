@@ -63,7 +63,7 @@ namespace AuthMicroservice
             })
             .AddJwtBearer(x =>
             {
-                var secretBytes = Encoding.UTF8.GetBytes("HealthRecordStackSecretMaybeAUniqueSecret");
+                var secretBytes = Encoding.UTF8.GetBytes(Configuration["HealthRecordStackSecret"].ToString());
 
                 x.RequireHttpsMetadata = false;
                 x.SaveToken = true;

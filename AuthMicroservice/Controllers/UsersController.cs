@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -30,14 +31,16 @@ namespace AuthMicroservice.Controllers
         IEmailSender _emailSender;
         ILogger<UsersController> _log;
         //RoleManager<IdentityRole> _roleManager;
+        AuthMessageSenderOptions Options { get; }
 
-        public UsersController(UserManager<HRSIdentityUser> userManager, IMapper mapper, ILogger<UsersController> log, IEmailSender emailSender, SignInManager<HRSIdentityUser> signInManager)
+        public UsersController(UserManager<HRSIdentityUser> userManager, IMapper mapper, ILogger<UsersController> log, IEmailSender emailSender, SignInManager<HRSIdentityUser> signInManager, IOptions<AuthMessageSenderOptions> optionsAccessor)
         {
             _userManager = userManager;
             _mapper = mapper;
             _emailSender = emailSender;
             _signInManager = signInManager;
             _log = log;
+            Options = optionsAccessor.Value;
         }
 
         [HttpPost]
@@ -209,9 +212,9 @@ namespace AuthMicroservice.Controllers
                     new Claim(JwtRegisteredClaimNames.Iss,"Health Record Stack Auth"),
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                     new Claim(JwtRegisteredClaimNames.Aud, user.Id),
-                    new Claim(JwtRegisteredClaimNames.Exp, new DateTimeOffset(DateTime.Now.AddMinutes(20)).ToUnixTimeSeconds().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Nbf, new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds().ToString()),
+                    // new Claim(JwtRegisteredClaimNames.Exp, new DateTimeOffset(DateTime.Now.AddMinutes(20)).ToUnixTimeSeconds().ToString()),
+                    // new Claim(JwtRegisteredClaimNames.Nbf, new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds().ToString(), "DateTime"),
+                    new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds().ToString(), "DateTime"),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim("Tenant", user.TenantId.ToString()),
                     };
@@ -230,12 +233,12 @@ namespace AuthMicroservice.Controllers
                     //}
                 }
 
-                var secretBytes = Encoding.UTF8.GetBytes("HealthRecordStackSecretMaybeAUniqueSecret");
+                var secretBytes = Encoding.UTF8.GetBytes(Options.HealthRecordStackSecret);
                 var key = new SymmetricSecurityKey(secretBytes);
                 var algorithm = SecurityAlgorithms.HmacSha256;
                 var signingCredentials = new SigningCredentials(key, algorithm);
 
-                var token = new JwtSecurityToken(null, null, claims, null, null, signingCredentials);
+                var token = new JwtSecurityToken(null, null, claims, DateTime.Now, DateTime.Now.AddMinutes(20), signingCredentials);
 
                 var tokenJson = new JwtSecurityTokenHandler().WriteToken(token);
 

@@ -99,7 +99,16 @@ namespace AuthMicroservice.Tests
                .ReturnsAsync(IdentityResult.Failed(errors)).ReturnsAsync(IdentityResult.Success).ReturnsAsync(IdentityResult.Success);
 
             mockEmail.Setup(r => r.SendEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
-            usersController = new UsersController(mockUserManager.Object, Mapper, mockLogger.Object, mockEmail.Object, mockSignInManager.Object);
+
+            //var mockOptions = new Mock<IEmailSender>();
+            //var mockOptions = new Mock<IOptions<AuthMessageSenderOptions>>();
+            var option = Options.Create(new AuthMessageSenderOptions()
+            {
+                HealthRecordStackSecret = "sometstxvxxdgdfgfgfgdfgdfgdfgdf",
+                SendGridKey = "sdfsdfsdf",
+                SendGridUser = "sdfsdfsdfs"
+            });
+            usersController = new UsersController(mockUserManager.Object, Mapper, mockLogger.Object, mockEmail.Object, mockSignInManager.Object, option);
 
         }
 
